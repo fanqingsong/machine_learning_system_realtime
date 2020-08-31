@@ -16,7 +16,7 @@ export class Iris extends Component {
   render() {
     return (
       <Fragment>
-        <h2>Iris</h2>
+        <h2>Iris To Be learned one by one</h2>
         <table className="table table-striped">
           <thead>
             <tr>
