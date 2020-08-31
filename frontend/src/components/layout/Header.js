@@ -72,7 +72,7 @@ export class Header extends Component {
                 </Nav.Item>
                 <Nav.Item>
                   <Nav.Link eventKey="Train" title="Item" href="#/train">
-                    Train
+                    Train(Online)
                   </Nav.Link>
                 </Nav.Item>
                 <Nav.Item>

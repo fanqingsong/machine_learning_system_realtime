@@ -8,7 +8,7 @@ import C3Chart from 'react-c3js';
 import 'c3/c3.css';
 
 import { ProgressBar } from 'react-bootstrap';
-
+import List from "./List";
 
 export class IrisExplore extends Component {
   static propTypes = {
@@ -248,36 +248,43 @@ export class IrisExplore extends Component {
           </div>
         </form>
 
-        <h2>Iris Sepal Scatter cluster</h2>
-        <C3Chart data={sepalData} axis={sepalAxis} />
-
-        <h2>Iris Petal Scatter cluster</h2>
-        <C3Chart data={petalData} axis={petalAxis} />
-
-        <h2>Iris Cluster Result</h2>
-        <table className="table table-striped">
-          <thead>
-            <tr>
-              <th>sepal_len</th>
-              <th>sepal_width</th>
-              <th>petal_len</th>
-              <th>petal_width</th>
-              <th>cluster</th>
-              <th />
-            </tr>
-          </thead>
-          <tbody>
-            {this.props.irisCluster.map(oneIris => (
-              <tr>
-                <td>{oneIris.sepal_len}</td>
-                <td>{oneIris.sepal_width}</td>
-                <td>{oneIris.petal_len}</td>
-                <td>{oneIris.petal_width}</td>
-                <td>{oneIris.cluster}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        {
+          this.state.percentile === 100 ? 
+          <Fragment>
+            <h2>Iris Sepal Scatter cluster</h2>
+            <C3Chart data={sepalData} axis={sepalAxis} />
+    
+            <h2>Iris Petal Scatter cluster</h2>
+            <C3Chart data={petalData} axis={petalAxis} />
+    
+            <h2>Iris Cluster Result</h2>
+            <table className="table table-striped">
+              <thead>
+                <tr>
+                  <th>sepal_len</th>
+                  <th>sepal_width</th>
+                  <th>petal_len</th>
+                  <th>petal_width</th>
+                  <th>cluster</th>
+                  <th />
+                </tr>
+              </thead>
+              <tbody>
+                {this.props.irisCluster.map(oneIris => (
+                  <tr>
+                    <td>{oneIris.sepal_len}</td>
+                    <td>{oneIris.sepal_width}</td>
+                    <td>{oneIris.petal_len}</td>
+                    <td>{oneIris.petal_width}</td>
+                    <td>{oneIris.cluster}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table> 
+          </Fragment>
+          : 
+          <List></List>
+        }
       </Fragment>
     );
   }
