@@ -1,7 +1,7 @@
 import React, { Component, Fragment } from "react";
 import { connect } from "react-redux";
 import PropTypes from "prop-types";
-import { getIris, setClusteredIris } from "../../actions/iris";
+import { setClusteredIris } from "../../actions/iris";
 import axios from 'axios'
 
 import C3Chart from 'react-c3js';
@@ -26,7 +26,6 @@ export class IrisExplore extends Component {
   }
 
   componentDidMount() {
-    this.props.getIris();
   };
 
   queryTrainStatus(train_task_id){
@@ -291,11 +290,10 @@ export class IrisExplore extends Component {
 }
 
 const mapStateToProps = state => ({
-  iris: state.iris.iris,
   clusteredIris: state.iris.clusteredIris,
 });
 
 export default connect(
   mapStateToProps,
-  { getIris, setClusteredIris }
+  { setClusteredIris }
 )(IrisExplore);
