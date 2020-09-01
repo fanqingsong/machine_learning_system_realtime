@@ -101,24 +101,13 @@ category | name | comment
 ### pyenv install
 [reference](https://github.com/pyenv/pyenv#installation)
 
-### python3.5 install
+### install all other dependencies
 
 ```bash
-pyenv install 3.5.3
-pyenv global 3.5.3
+./bin/install_deps.sh
 ```
 
-### Install python package
-```bash
-pip install -r requirements.txt
-```
-
-### install redis
-```bash
-sudo apt-get install redis-server
-```
-
-### Spark Install
+### install spark(2.1.0)
 [reference](http://dblab.xmu.edu.cn/blog/1307-2/)
 
 
@@ -127,36 +116,31 @@ sudo apt-get install redis-server
 ### start redis server
 
 ```bash
-redis-server
+./bin/start_redis.sh
 ```
 
 ### frontend build
 
 ```bash
-cd ./frontend
-# Install dependencies
-npm install
-# Build for production
-npm run build
+./bin/build_ui.sh
 ```
 
 ### start celery worker for django
 
 ```bash
-cd ./backend
-celery worker -A config -l debug
+./bin/start_celery.sh
 ```
 
 ### start Server on localhost:8000
 
 ```bash
-cd ./backend
-python manage.py runserver
+./bin/start_django.sh
 ```
 
 ## snapshot
 
 ### login page
+Note: account: admin/admin
 ![avatar](./snapshot/loginpage.png)
 
 ### data management page
