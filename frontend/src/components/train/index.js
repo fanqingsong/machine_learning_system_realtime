@@ -1,7 +1,7 @@
 import React, { Component, Fragment } from "react";
 import { connect } from "react-redux";
 import PropTypes from "prop-types";
-import { getIris, setIrisCluster } from "../../actions/iris";
+import { getIris, setClusteredIris } from "../../actions/iris";
 import axios from 'axios'
 
 import C3Chart from 'react-c3js';
@@ -46,7 +46,7 @@ export class IrisExplore extends Component {
         let status = respData['status']
         if ("SUCCESS" === status) {
             let irisData = respData['result'];
-            this.props.setIrisCluster(irisData);
+            this.props.setClusteredIris(irisData);
 
             this.setState({percentile: 100});
         } else if ("FAILURE" === status) {
@@ -63,7 +63,7 @@ export class IrisExplore extends Component {
     console.log("======start train =======")
     this.setState({percentile: 0});
 
-    this.props.setIrisCluster([]);
+    this.props.setClusteredIris([]);
 
     let cluster_number = this.state.cluster_number;
 
@@ -89,7 +89,7 @@ export class IrisExplore extends Component {
   getSepalScatterData(cluster_number){
     console.log("cluster_number=", cluster_number);
 
-    let irisCluster = this.props.irisCluster;
+    let clusteredIris = this.props.clusteredIris;
 
     let data = {
       columns: [
@@ -106,7 +106,7 @@ export class IrisExplore extends Component {
     };
 
     for(let i=0; i<cluster_number; i++){
-      let irisClusterFilter = irisCluster.filter((oneIris) => {
+      let clusteredIrisFilter = clusteredIris.filter((oneIris) => {
         if (i === oneIris.cluster) {
           console.log("filter OK! oneIris.cluster=", oneIris.cluster);
           return true;
@@ -115,10 +115,10 @@ export class IrisExplore extends Component {
   
       let sepalLen = "sepalLen"+i;
       let sepalWidth = "sepalWidth"+i;
-      let sepalLenSeries = irisClusterFilter.map((oneIris)=>{
+      let sepalLenSeries = clusteredIrisFilter.map((oneIris)=>{
         return oneIris.sepal_len;
       });
-      let sepalWidthSeries = irisClusterFilter.map((oneIris)=>{
+      let sepalWidthSeries = clusteredIrisFilter.map((oneIris)=>{
         return oneIris.sepal_width;
       });
 
@@ -153,7 +153,7 @@ export class IrisExplore extends Component {
   getPetalScatterData(cluster_number){
     console.log("cluster_number=", cluster_number);
 
-    let irisCluster = this.props.irisCluster;
+    let clusteredIris = this.props.clusteredIris;
 
     let data = {
       columns: [
@@ -170,7 +170,7 @@ export class IrisExplore extends Component {
     };
 
     for(let i=0; i<cluster_number; i++){
-      let irisClusterFilter = irisCluster.filter((oneIris) => {
+      let clusteredIrisFilter = clusteredIris.filter((oneIris) => {
         if (i === oneIris.cluster) {
           console.log("filter OK! oneIris.cluster=", oneIris.cluster);
           return true;
@@ -179,10 +179,10 @@ export class IrisExplore extends Component {
   
       let petalLen = "petalLen"+i;
       let petalWidth = "petalWidth"+i;
-      let petalLenSeries = irisClusterFilter.map((oneIris)=>{
+      let petalLenSeries = clusteredIrisFilter.map((oneIris)=>{
         return oneIris.petal_len;
       });
-      let petalWidthSeries = irisClusterFilter.map((oneIris)=>{
+      let petalWidthSeries = clusteredIrisFilter.map((oneIris)=>{
         return oneIris.petal_width;
       });
 
@@ -270,7 +270,7 @@ export class IrisExplore extends Component {
                 </tr>
               </thead>
               <tbody>
-                {this.props.irisCluster.map(oneIris => (
+                {this.props.clusteredIris.map(oneIris => (
                   <tr>
                     <td>{oneIris.sepal_len}</td>
                     <td>{oneIris.sepal_width}</td>
@@ -292,10 +292,10 @@ export class IrisExplore extends Component {
 
 const mapStateToProps = state => ({
   iris: state.iris.iris,
-  irisCluster: state.iris.irisCluster,
+  clusteredIris: state.iris.clusteredIris,
 });
 
 export default connect(
   mapStateToProps,
-  { getIris, setIrisCluster }
+  { getIris, setClusteredIris }
 )(IrisExplore);

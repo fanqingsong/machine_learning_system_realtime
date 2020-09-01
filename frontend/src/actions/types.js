@@ -1,10 +1,15 @@
-export const GET_IRIS_DATA = "GET_IRIS_DATA";
+
+
+// iris types
+export const SET_IRIS_DATA = "SET_IRIS_DATA";
 export const CLEAR_IRIS_DATA = 'CLEAR_IRIS_DATA';
 export const DELETE_ONE_IRIS = "DELETE_ONE_IRIS";
-export const SET_EDIT_IRIS = "SET_EDIT_IRIS";
-export const SET_EDIT_IRIS_CLUSTER = "SET_EDIT_IRIS_CLUSTER";
+export const SELECT_ONE_IRIS = "SELECT_ONE_IRIS";
+export const SET_CLUSTERED_IRIS_DATA = "SET_CLUSTERED_IRIS_DATA";
 export const UPDATE_ONE_IRIS = "UPDATE_ONE_IRIS";
 export const ADD_ONE_IRIS = "ADD_ONE_IRIS";
+
+// auth types
 export const GET_ERRORS = "GET_ERRORS";
 export const CREATE_MESSAGE = "CREATE_MESSAGE";
 export const USER_LOADING = "USER_LOADING";

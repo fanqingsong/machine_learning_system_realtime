@@ -2,21 +2,29 @@ import axios from "axios";
 import { createMessage, returnErrors } from "./messages";
 import { tokenConfig } from "./auth";
 
-import { GET_IRIS_DATA, DELETE_ONE_IRIS, UPDATE_ONE_IRIS, ADD_ONE_IRIS, SET_EDIT_IRIS, SET_EDIT_IRIS_CLUSTER } from "./types";
+import { SET_IRIS_DATA, DELETE_ONE_IRIS, UPDATE_ONE_IRIS, ADD_ONE_IRIS, SELECT_ONE_IRIS, SET_CLUSTERED_IRIS_DATA } from "./types";
 
-// GET IRIS DATA
+// GET ALL IRIS DATA
 export const getIris = () => (dispatch, getState) => {
   axios
     .get("/api/iris/", tokenConfig(getState))
     .then(res => {
       dispatch({
-        type: GET_IRIS_DATA,
+        type: SET_IRIS_DATA,
         payload: res.data
       });
     })
     .catch(err =>
       dispatch(returnErrors(err.response.data, err.response.status))
     );
+};
+
+// CLEAR ALL IRIS DATA
+export const clearIris = () => (dispatch, getState) => {
+    dispatch({
+      type: SET_IRIS_DATA,
+      payload: undefined
+    });
 };
 
 // DELETE one iris
@@ -33,23 +41,14 @@ export const deleteOneIris = id => (dispatch, getState) => {
     .catch(err => console.log(err));
 };
 
-export const setEditedIris = iris => (dispatch, getState) => {
-  console.log("setEditedIris called");
+// select one iris to be edited.
+export const selectOneIrisToUpdate = iris => (dispatch, getState) => {
+  console.log("selectOneIrisToUpdate called");
   dispatch({
-    type: SET_EDIT_IRIS,
+    type: SELECT_ONE_IRIS,
     payload: iris
   })
 }
-
-
-export const setIrisCluster = irisCluster => (dispatch, getState) => {
-  console.log("setIrisCluster called");
-  dispatch({
-    type: SET_EDIT_IRIS_CLUSTER,
-    payload: irisCluster
-  })
-}
-
 
 // UPDATE one iris
 export const updateOneIris = iris => (dispatch, getState) => {
@@ -83,3 +82,13 @@ export const addOneIris = iris => (dispatch, getState) => {
       dispatch(returnErrors(err.response.data, err.response.status))
     );
 };
+
+// store data from trained model
+export const setClusteredIris = clusteredIris => (dispatch, getState) => {
+  console.log("setClusteredIris called");
+  dispatch({
+    type: SET_CLUSTERED_IRIS_DATA,
+    payload: clusteredIris
+  })
+}
+

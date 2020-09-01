@@ -1,35 +1,39 @@
 import React, { Component } from "react";
 import { connect } from "react-redux";
 import PropTypes from "prop-types";
-import { addOneIris, updateOneIris, setEditedIris } from "../../actions/iris";
+import { addOneIris, updateOneIris, selectOneIrisToUpdate } from "../../actions/iris";
 
 export class Form extends Component {
   static propTypes = {
     addOneIris: PropTypes.func.isRequired,
     updateOneIris: PropTypes.func.isRequired,
-    setEditedIris: PropTypes.func.isRequired,
+    selectOneIrisToUpdate: PropTypes.func.isRequired,
   };
 
+  // update one attr value to one iris
   onChange = e => {
-    this.props.editedIris[e.target.name] = e.target.value;
-    let editedIris = {...this.props.editedIris}
-    editedIris[e.target.name] = e.target.value;
-    this.props.setEditedIris(editedIris);
+    this.props.oneSelectedIris[e.target.name] = e.target.value;
+
+    let oneSelectedIris = {...this.props.oneSelectedIris}
+    oneSelectedIris[e.target.name] = e.target.value;
+
+    this.props.selectOneIrisToUpdate(oneSelectedIris);
   }
 
+  // add or update one iris
   onSubmit = e => {
     e.preventDefault();
-    const { sepal_len, sepal_width, petal_len, petal_width, category } = this.props.editedIris;
+    const { sepal_len, sepal_width, petal_len, petal_width, category } = this.props.oneSelectedIris;
     const iris = { sepal_len, sepal_width, petal_len, petal_width, category };
 
-    if (this.props.editedIris.id) {
-      iris['id'] = this.props.editedIris.id;
+    if (this.props.oneSelectedIris.id) {
+      iris['id'] = this.props.oneSelectedIris.id;
       this.props.updateOneIris(iris);
     } else {
       this.props.addOneIris(iris);
     }
     
-    this.props.setEditedIris({
+    this.props.selectOneIrisToUpdate({
       sepal_len: "",
       sepal_width: "",
       petal_len: "",
@@ -39,7 +43,7 @@ export class Form extends Component {
   };
 
   render() {
-    const { sepal_len, sepal_width, petal_len, petal_width, category } = this.props.editedIris;
+    const { sepal_len, sepal_width, petal_len, petal_width, category } = this.props.oneSelectedIris;
     return (
       <div className="card card-body mt-4 mb-4">
         <h2>Add One Iris</h2>
@@ -107,11 +111,11 @@ export class Form extends Component {
 
 const mapStateToProps = (state) => {
   return {
-    editedIris: state.iris.editedIris
+    oneSelectedIris: state.iris.oneSelectedIris
   }
 };
 
 export default connect(
   mapStateToProps,
-  { addOneIris, updateOneIris, setEditedIris }
+  { addOneIris, updateOneIris, selectOneIrisToUpdate }
 )(Form);

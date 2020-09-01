@@ -1,13 +1,13 @@
 import React, { Component, Fragment } from "react";
 import { connect } from "react-redux";
 import PropTypes from "prop-types";
-import { getIris, deleteOneIris, setEditedIris } from "../../actions/iris";
+import { getIris, deleteOneIris, selectOneIrisToUpdate } from "../../actions/iris";
 
 export class Iris extends Component {
   static propTypes = {
     iris: PropTypes.array.isRequired,
     getIris: PropTypes.func.isRequired,
-    setEditedIris: PropTypes.func.isRequired,
+    selectOneIrisToUpdate: PropTypes.func.isRequired,
     deleteOneIris: PropTypes.func.isRequired
   };
 
@@ -42,7 +42,7 @@ export class Iris extends Component {
                 <td>{oneIris.category}</td>
                 <td>
                 <button
-                    onClick={this.props.setEditedIris.bind(this, oneIris)}
+                    onClick={this.props.selectOneIrisToUpdate.bind(this, oneIris)}
                     className="btn btn-warning btn-sm"
                   >
                     {" "}
@@ -72,5 +72,5 @@ const mapStateToProps = state => ({
 
 export default connect(
   mapStateToProps,
-  { getIris, deleteOneIris, setEditedIris }
+  { getIris, deleteOneIris, selectOneIrisToUpdate }
 )(Iris);
