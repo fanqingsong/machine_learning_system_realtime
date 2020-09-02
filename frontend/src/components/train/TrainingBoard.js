@@ -6,7 +6,7 @@ var async = require("async");
 
 export class Iris extends Component {
   static propTypes = {
-    iris: PropTypes.array.isRequired,
+    irisDataFromDB: PropTypes.array.isRequired,
     getIris: PropTypes.func.isRequired
   };
 
