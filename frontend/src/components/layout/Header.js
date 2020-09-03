@@ -1,5 +1,5 @@
 import React, { Component, Fragment } from "react";
-import { Link } from "react-router-dom";
+import { Link, Redirect } from "react-router-dom";
 import { connect } from "react-redux";
 import PropTypes from "prop-types";
 import { logout } from "../../actions/auth";
@@ -10,6 +10,25 @@ export class Header extends Component {
   static propTypes = {
     auth: PropTypes.object.isRequired,
     logout: PropTypes.func.isRequired
+  };
+
+  constructor(props) {
+    super(props);
+
+    this.state = {
+      activeKey: "data",
+    }
+  };
+
+  componentDidMount(){
+    let activeKey = location.hash.slice(2);
+    activeKey = activeKey == "" ? "data" : activeKey;
+
+    this.setState({activeKey: activeKey});
+  };
+
+  handleSelect(selectedKey) {
+    this.setState({activeKey: selectedKey});
   };
 
   render() {
@@ -46,6 +65,33 @@ export class Header extends Component {
       </ul>
     );
 
+
+    let activeKey = this.state.activeKey;
+    const menus = (
+      <Nav variant="pills" activeKey={activeKey} defaultActiveKey="data"  onSelect={this.handleSelect.bind(this)}>
+        <Nav.Item>
+          <Nav.Link eventKey="data" title="Data" href="#/data">
+            Data(iris)
+          </Nav.Link>
+        </Nav.Item>
+        <Nav.Item>
+          <Nav.Link eventKey="explore" title="Explore" href="#/explore">
+            Explore
+          </Nav.Link>
+        </Nav.Item>
+        <Nav.Item>
+          <Nav.Link eventKey="train" title="Train" href="#/train">
+            Train(Online)
+          </Nav.Link>
+        </Nav.Item>
+        <Nav.Item>
+          <Nav.Link eventKey="predict" title="Predict" href="#/predict">
+            Predict
+          </Nav.Link>
+        </Nav.Item>
+      </Nav>
+    );
+
     return (
       <Fragment>
         <div className="container">
@@ -58,31 +104,7 @@ export class Header extends Component {
             {isAuthenticated ? authLinks : guestLinks}
           </nav>
 
-            { isAuthenticated ?
-              <Nav variant="pills" defaultActiveKey="data">
-                <Nav.Item>
-                  <Nav.Link eventKey="data" href="#/">
-                    Data(iris)
-                  </Nav.Link>
-                </Nav.Item>
-                <Nav.Item>
-                  <Nav.Link eventKey="Explore" title="Item" href="#/explore">
-                    Explore
-                  </Nav.Link>
-                </Nav.Item>
-                <Nav.Item>
-                  <Nav.Link eventKey="Train" title="Item" href="#/train">
-                    Train(Online)
-                  </Nav.Link>
-                </Nav.Item>
-                <Nav.Item>
-                  <Nav.Link eventKey="Predict" title="Item" href="#/predict">
-                    Predict
-                  </Nav.Link>
-                </Nav.Item>
-              </Nav>
-                : ""
-            }
+          { isAuthenticated ? menus : <div></div> }
         </div>
       </Fragment>
     );

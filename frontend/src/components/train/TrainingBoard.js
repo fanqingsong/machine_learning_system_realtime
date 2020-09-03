@@ -87,6 +87,7 @@ export class Iris extends Component {
           </tbody>
         </table>
 
+        <hr></hr>
         <h2>Iris Data to be learned one by one</h2>
         <table className="table table-striped">
           <thead>

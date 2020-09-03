@@ -11,7 +11,7 @@ import { Provider as AlertProvider } from "react-alert";
 import AlertTemplate from "react-alert-template-basic";
 
 import Header from "./layout/Header";
-import Dashboard from "./iris/Dashboard";
+import IrisDataManagement from "./iris";
 import Explore from "./explore";
 import Train from "./train";
 import Predict from "./predict";
@@ -45,12 +45,14 @@ class App extends Component {
               <Alerts />
               <div className="container">
                 <Switch>
-                  <PrivateRoute exact path="/" component={Dashboard} />
+                  <Route exact path="/" component={Login} />
+                  <Route exact path="/login" component={Login} />
+                  <Route exact path="/register" component={Register} />
+
+                  <PrivateRoute exact path="/data" component={IrisDataManagement} />
                   <PrivateRoute exact path="/explore" component={Explore} />
                   <PrivateRoute exact path="/train" component={Train} />
                   <PrivateRoute exact path="/predict" component={Predict} />
-                  <Route exact path="/register" component={Register} />
-                  <Route exact path="/login" component={Login} />
                 </Switch>
               </div>
             </Fragment>
