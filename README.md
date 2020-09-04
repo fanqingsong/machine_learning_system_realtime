@@ -2,15 +2,18 @@
 
 ## introduction
 
-This project is a full stack Django/React/Redux app that uses token based authentication with Knox.
+> This project is a full stack Django/React/Redux/Celery/Spark app that uses token based authentication with Knox.
+ 
+> Then I add Machine Learning features for demostrate the full workflow of the data mining, including the four stage corresponding to four pages:
+> - data management
+> - data explore
+> - model train
+> - prediction
 
-Then I add Machine Learning features for demostrate the full workflow of the data mining, including the four stage corresponding to four pages:
-1. data management
-2. data explore
-3. model train
-4. prediction
+> The data set is the classic iris data, which is only for demo, and this project is from my interest. 
+so you can reference, but the quality is not assured.
 
-The data set is the classic iris data, which is only for demo, and this project is from my interest. so you can reference, but the quality is not assured.
+---
 
 ## features
 
@@ -37,6 +40,8 @@ The data set is the classic iris data, which is only for demo, and this project 
 * prediction
 > input iris sepal and petal attributes
 > predict iris cluster
+
+---
 
 ## Architecture
 
@@ -82,6 +87,8 @@ So set train flow as async mode, and predict flow as sync mode.
 
 ```
 
+---
+
 ## technology stack
 
 category | name | comment
@@ -96,46 +103,61 @@ category | name | comment
  backend | djangorestframework | restful framework
  backend | spark.ml | machine learning tool
 
+---
+
 ## Install
 
-### pyenv install
+- pyenv install
 [reference](https://github.com/pyenv/pyenv#installation)
 
-### install all other dependencies
+- install all other dependencies
 
 ```bash
 ./bin/install_deps.sh
 ```
 
-### install spark(2.1.0)
+- install spark(2.1.0)
 [reference](http://dblab.xmu.edu.cn/blog/1307-2/)
 
+---
 
 ## Run
 
-### start redis server
+### Prerequisite for Run
 
-```bash
-./bin/start_redis.sh
-```
-
-### frontend build
+- frontend build
 
 ```bash
 ./bin/build_ui.sh
 ```
 
-### start celery worker for django
+### Run (On Different Terminals)
+
+- start redis server
+
+```bash
+./bin/start_redis.sh
+```
+
+- start celery worker for django
 
 ```bash
 ./bin/start_celery.sh
 ```
 
-### start Server on localhost:8000
+- start Server on localhost:8000
 
 ```bash
 ./bin/start_django.sh
 ```
+
+### Run (On One Terminal)
+
+```bash
+./bin/start.sh
+```
+
+---
 
 ## snapshot
 
@@ -155,8 +177,7 @@ Note: account: admin/admin
 ### prediction page
 ![avatar](./snapshot/predict.png)
 
-## TO DO LIST
-
+---
 
 ## Memo:
 
