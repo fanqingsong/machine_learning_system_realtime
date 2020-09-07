@@ -1,5 +1,6 @@
 from pyspark.sql import Row
-from pyspark.ml.clustering import KMeans,KMeansModel
+from pyspark.ml.clustering import KMeans,
+
 from pyspark.ml.linalg import Vectors
 from pyspark import SparkConf, SparkContext
 from pyspark.sql import SparkSession

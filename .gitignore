@@ -7,6 +7,10 @@ node_modules
 
 backend/kmeans_model/
 
+*.bk
+*.crc
+/.idea/
+
 
 ### Django ###
 *.log
