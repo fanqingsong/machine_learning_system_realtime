@@ -5,15 +5,16 @@ from pyspark.streaming import StreamingContext
 import time, os, shutil
 import requests
 
-spark_conf = SparkConf().setAppName("iris_model")
+spark_conf = SparkConf().setAppName("iris_model_streaming_test")
 sc = SparkContext(conf=spark_conf)
 sc.setLogLevel("ERROR")
 
 ssc = StreamingContext(sc, 1)
 ssc.checkpoint(".")
 
-stkm = StreamingKMeans(decayFactor=0.0, k=2)
-stkm.setInitialCenters([[0.0], [1.0]], [1.0, 1.0])
+stkm = StreamingKMeans(decayFactor=0.5, k=2)
+#stkm.setInitialCenters([[0.0], [1.0]], [1.0, 1.0])
+stkm.setRandomCenters(1, 1.0, 1)
 
 # Since decay factor is set to zero, once the first batch
 # is passed the clusterCenters are updated to [-0.5, 0.7]
@@ -37,15 +38,23 @@ stkm.trainOn(input_stream)
 
 predict_stream = stkm.predictOn(input_stream)
 
+predict_stream.pprint()
+
 predict_stream.foreachRDD(collect)
 
 ssc.start()
 
-time.sleep(5)
+time.sleep(3)
 
 
 model = stkm.latestModel()
 typed_model = StreamingKMeansModel(clusterCenters=model.centers, clusterWeights=model.clusterWeights)
+
+'''
+StreamingKMeansModel inherits KMeansModel
+save method belongs to KMeansModel, so it doesn't treat StreamingKMeansModel part
+only care its own part
+'''
 shutil.rmtree("./kmeans_model_streaming")
 typed_model.save(sc, "./kmeans_model_streaming")
 
@@ -56,15 +65,19 @@ print("---------- typed weights --------")
 print(typed_model.clusterWeights)
 
 
-
-restored_model = StreamingKMeansModel([[0.0], [1.0]], [1.0, 1.0])
-restored_model.load(sc, "./kmeans_model_streaming")
-
-print("---------- restored centers --------")
-print(restored_model.clusterCenters)
-
-print("---------- restored weights --------")
-print(restored_model.clusterWeights)
+'''
+StreamingKMeansModel inherits KMeansModel
+load method belongs to KMeansModel, so it doesn't treat StreamingKMeansModel part
+and return a new KMeansModel, don't affect StreamingKMeansModel instance
+'''
+# restored_model = StreamingKMeansModel([[0.0], [1.0]], [1.0, 1.0])
+# restored_model.load(sc, "./kmeans_model_streaming")
+#
+# print("---------- restored centers --------")
+# print(restored_model.clusterCenters)
+#
+# print("---------- restored weights --------")
+# print(restored_model.clusterWeights)
 
 
 
