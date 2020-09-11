@@ -1,5 +1,13 @@
 # task.py
 
+from kafka import KafkaProducer
+from pyspark.streaming import StreamingContext
+from pyspark.streaming.kafka import KafkaUtils
+from pyspark import SparkConf, SparkContext
+import json
+import sys
+
+
 import time, os
 from celery import Celery, Task
 import asyncio
@@ -17,83 +25,87 @@ from pyspark.sql import Row
 import csv
 from pprint import pprint
 
-class StreamingIrisCluster():
-    def __init__(self):
-        self._init_sparkcontext()
 
-        self._model_path = "./kmeans_model_streaming"
-        self._kmeans_model = None
-        #self._init_model()
+def train(ds):
+    stkm = StreamingKMeans(decayFactor=0.5, k=2)
+    stkm.setRandomCenters(1, 1.0, 1)
 
-    def create_streaming_kmeans(self, k):
-        stkm = StreamingKMeans(decayFactor=0.5, k=k)
-        stkm.setRandomCenters(1, 1.0, 1)
+    print("train start")
+    stkm.trainOn(ds)
+    print("train over")
 
-        self._stkm = stkm
+    predict_stream = stkm.predictOn(ds)
+    predict_stream.pprint()
 
-    def train(self):
-        ds = self._get_train_ds()
+    predict_results = []
 
-        print("train start")
-        self._stkm.trainOn(ds)
-        print("train over")
+    def collect(rdd):
+        rdd_collect = rdd.collect()
+        if rdd_collect:
+            print("predict_stream foreach")
+            print(rdd_collect)
+            predict_results.append(rdd_collect)
 
-        predict_stream = self._stkm.predictOn(ds)
-
-        predict_results = []
-
-        def collect(rdd):
-            rdd_collect = rdd.collect()
-            if rdd_collect:
-                print(rdd_collect)
-                predict_results.append(rdd_collect)
-
-        predict_stream.foreachRDD(collect)
-
-        self._ssc.start()
-        self._ssc.awaitTermination()
-
-        time.sleep(300)
-
-    def predict(self, one_features):
-        print("enter predict")
-
-        return
-
-    def _init_sparkcontext(self):
-        spark_conf = SparkConf().setAppName("iris_model_streaming")
-        sc = SparkContext(conf=spark_conf)
-        sc.setLogLevel("ERROR")
-
-        ssc = StreamingContext(sc, 1)
-        ssc.checkpoint(".")
-
-        self._sc = sc
-        self._ssc = ssc
-
-    def _get_train_ds(self):
-        # Since decay factor is set to zero, once the first batch
-        # is passed the clusterCenters are updated to [-0.5, 0.7]
-        # which causes 0.2 & 0.3 to be classified as 1, even though the
-        # classification based in the initial model would have been 0
-        # proving that the model is updated.
-        batches = [[[-0.5], [0.6], [0.8]], [[0.2], [-0.1], [0.3]]]
-        batches = [self._sc.parallelize(batch) for batch in batches]
-        input_stream = self._ssc.queueStream(batches)
-
-        return input_stream
+    predict_stream.foreachRDD(collect)
 
 
-def main():
-    iris_cluster = StreamingIrisCluster()
+def ml_train(zkQuorum, group, topics, numThreads):
+    spark_conf = SparkConf().setAppName("StreamingKmeansTrain")
+    sc = SparkContext(conf=spark_conf)
+    sc.setLogLevel("ERROR")
+    ssc = StreamingContext(sc, 5)
+    # ssc.checkpoint("file:///usr/local/spark/checkpoint")
+    # 这里表示把检查点文件写入分布式文件系统HDFS，所以要启动Hadoop
+    ssc.checkpoint("_checkpoint")
+    topicAry = topics.split(",")
+    # 将topic转换为hashmap形式，而python中字典就是一种hashmap
+    topicMap = {}
+    for topic in topicAry:
+        topicMap[topic] = numThreads
+    rawds = KafkaUtils.createStream(ssc, zkQuorum, group, topicMap)
+    rawds.pprint()
 
-    iris_cluster.create_streaming_kmeans(2)
+    def type_trans(x):
+        # print("------ now trans ------")
+        # print("x:")
+        # print(x)
+        # print("type of x[1]:")
+        # print(type(x[1]))
+        # print(x[1])
+        result = float(x[1])
+        # print("result:")
+        # print(result)
 
-    iris_cluster.train()
+        result = [result]
+        return result
+
+    #ds = rawds.map(lambda x: x[1])
+
+    ds = rawds.map(type_trans)
+    ds.pprint()
+
+    train(ds)
+
+    ssc.start()
+    ssc.awaitTermination()
 
 
 if __name__ == '__main__':
     print("Start Online Learning Process ...")
 
-    main()
+    # 输入的四个参数分别代表着
+    # 1.zkQuorum为zookeeper地址
+    # 2.group为消费者所在的组
+    # 3.topics该消费者所消费的topics
+    # 4.numThreads开启消费topic线程的个数
+    if (len(sys.argv) < 5):
+        print("Usage: KafkaWordCount <zkQuorum> <group> <topics> <numThreads>")
+        exit(1)
+    zkQuorum = sys.argv[1]
+    group = sys.argv[2]
+    topics = sys.argv[3]
+    numThreads = int(sys.argv[4])
+    print(group, topics)
+    ml_train(zkQuorum, group, topics, numThreads)
+
 

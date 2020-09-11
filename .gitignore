@@ -5,6 +5,8 @@ node_modules
 /ml_celery_research/spark-warehouse/
 /ml_celery_research/dump.rdb
 
+/ml/_checkpoint
+
 backend/kmeans_model/
 
 *.bk

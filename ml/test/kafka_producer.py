@@ -1,0 +1,25 @@
+# coding: utf-8
+import time, json
+from kafka import KafkaProducer
+import requests
+from bs4 import BeautifulSoup
+
+web_url = "https://en.wikipedia.org/wiki/COVID-19_pandemic"
+
+class Sender:
+    def __init__(self):
+        self._producer = KafkaProducer(bootstrap_servers='localhost:9092')
+
+    def _send_iris(self):
+        batches = [-0.5, 0.6, 0.8, 0.2, -0.1, 0.3]
+        for batch in batches:
+            self._producer.send('oneIrisData', str(batch).encode())
+            time.sleep(5)
+
+    def execute(self):
+        self._send_iris()
+
+if __name__ == "__main__":
+    sender = Sender()
+    sender.execute()
+
