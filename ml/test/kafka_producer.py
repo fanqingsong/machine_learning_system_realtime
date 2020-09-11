@@ -11,9 +11,9 @@ class Sender:
         self._producer = KafkaProducer(bootstrap_servers='localhost:9092')
 
     def _send_iris(self):
-        batches = [-0.5, 0.6, 0.8, 0.2, -0.1, 0.3]
+        batches = [[5.1, 3.5, 1.4, 0.2]]
         for batch in batches:
-            self._producer.send('oneIrisData', str(batch).encode())
+            self._producer.send('oneIrisData', json.dumps(batch).encode())
             time.sleep(5)
 
     def execute(self):
