@@ -7,90 +7,6 @@ import sys
 import pickle
 
 
-def train(ds):
-    stkm = StreamingKMeans(decayFactor=0.5, k=2)
-    stkm.setRandomCenters(4, 1.0, 1)
-
-    print("train start")
-    stkm.trainOn(ds)
-    print("train over")
-
-    predict_stream = stkm.predictOn(ds)
-    predict_stream.pprint()
-
-    predict_results = []
-
-    def collect(rdd):
-        rdd_collect = rdd.collect()
-        if rdd_collect:
-            print("----- predict_stream foreach ------")
-            print(rdd_collect)
-            predict_results.append(rdd_collect)
-
-            model = stkm.latestModel()
-            clusterCenters = model.centers
-            clusterWeights = model.clusterWeights
-            print("cluster center({})  cluster weight({})".format(clusterCenters, clusterWeights))
-
-            modelParams = {'clusterCenters':clusterCenters, 'clusterWeights':clusterWeights}
-            with open("./model.pk", 'wb') as f:
-                pickle.dump(modelParams, f, pickle.HIGHEST_PROTOCOL)
-
-            with open('./model.pk', 'rb') as f:
-                # The protocol version used is detected automatically, so we do not
-                # have to specify it.
-                data = pickle.load(f)
-                print("--------- restore pickle --------")
-                print(data)
-
-                typed_model = StreamingKMeansModel(clusterCenters=data['clusterCenters'],
-                                                   clusterWeights=data['clusterWeights'])
-
-                test_data = [5.1, 3.5, 1.4, 0.2]
-                test_result = typed_model.predict(test_data)
-                print("test.data({}) has test.result({})".format(test_data, test_result))
-
-    predict_stream.foreachRDD(collect)
-
-
-def ml_train(zkQuorum, group, topics, numThreads):
-    spark_conf = SparkConf().setAppName("StreamingKmeansTrain")
-    sc = SparkContext(conf=spark_conf)
-    sc.setLogLevel("ERROR")
-    ssc = StreamingContext(sc, 5)
-    # ssc.checkpoint("file:///usr/local/spark/checkpoint")
-    # 这里表示把检查点文件写入分布式文件系统HDFS，所以要启动Hadoop
-    ssc.checkpoint("_checkpoint")
-    topicAry = topics.split(",")
-    # 将topic转换为hashmap形式，而python中字典就是一种hashmap
-    topicMap = {}
-    for topic in topicAry:
-        topicMap[topic] = numThreads
-    rawds = KafkaUtils.createStream(ssc, zkQuorum, group, topicMap)
-    rawds.pprint()
-
-    def type_trans(x):
-        # print("------ now trans ------")
-        # print("x:")
-        # print(x)
-        # print("type of x[1]:")
-        # print(type(x[1]))
-        # print(x[1])
-        result = json.loads(x[1])
-        print("one iris data:")
-        print(result)
-
-        return result
-
-    ds = rawds.map(type_trans)
-    ds.pprint()
-
-    train(ds)
-
-    ssc.start()
-    ssc.awaitTermination()
-
-
 class MLTrainer:
     def __init__(self, zkQuorum, group, topics, numThreads):
         self._zkQuorum = zkQuorum
@@ -102,13 +18,13 @@ class MLTrainer:
         self._init_kafka()
 
     def start(self):
-        self._prepare_model_input()
-        self._attach_model_to_input()
-        self._set_watcher_to_model()
+        self._prepare_input()
+        self._set_model_on_input()
+        self._set_prediction_on_input()
         self._start()
 
     def _init_spark(self):
-        spark_conf = SparkConf().setAppName("StreamingKmeansTrain")
+        spark_conf = SparkConf().setAppName("StreamingKMeansTrain")
         sc = SparkContext(conf=spark_conf)
         sc.setLogLevel("ERROR")
         ssc = StreamingContext(sc, 5)
@@ -116,7 +32,6 @@ class MLTrainer:
         # 这里表示把检查点文件写入分布式文件系统HDFS，所以要启动Hadoop
         ssc.checkpoint("_checkpoint")
 
-        self._sc =sc
         self._ssc = ssc
 
     def _init_kafka(self):
@@ -136,7 +51,7 @@ class MLTrainer:
         self._ssc.start()
         self._ssc.awaitTermination()
 
-    def _prepare_model_input(self):
+    def _prepare_input(self):
         def type_trans(x):
             # print("------ now trans ------")
             # print("x:")
@@ -155,59 +70,60 @@ class MLTrainer:
 
         self._model_input = ds
 
-    def _attach_model_to_input(self):
+    def _set_model_on_input(self):
         stkm = StreamingKMeans(decayFactor=0.5, k=2)
         stkm.setRandomCenters(4, 1.0, 1)
 
         ds = self._model_input
 
-        print("train start")
+        print("set model on input")
         stkm.trainOn(ds)
-        print("train over")
 
         self._stkm = stkm
 
-    def _set_watcher_to_model(self):
+    def _set_prediction_on_input(self):
         ds = self._model_input
         stkm = self._stkm
 
         predict_stream = stkm.predictOn(ds)
         predict_stream.pprint()
 
-        predict_results = []
+        def save_model():
+            model = stkm.latestModel()
+            clusterCenters = model.centers
+            clusterWeights = model.clusterWeights
+            print("cluster center({})  cluster weight({})".format(clusterCenters, clusterWeights))
+
+            modelParams = {'clusterCenters': clusterCenters, 'clusterWeights': clusterWeights}
+            with open("./model.pk", 'wb') as f:
+                pickle.dump(modelParams, f, pickle.HIGHEST_PROTOCOL)
+
+        def test_model():
+            with open('./model.pk', 'rb') as f:
+                # The protocol version used is detected automatically, so we do not
+                # have to specify it.
+                data = pickle.load(f)
+                print("--------- restore pickle --------")
+                print(data)
+
+                typed_model = StreamingKMeansModel(clusterCenters=data['clusterCenters'],
+                                                   clusterWeights=data['clusterWeights'])
+
+                test_data = [5.1, 3.5, 1.4, 0.2]
+                test_result = typed_model.predict(test_data)
+                print("test.data({}) has test.result({})".format(test_data, test_result))
 
         def collect(rdd):
             rdd_collect = rdd.collect()
             if rdd_collect:
                 print("----- predict_stream foreach ------")
                 print(rdd_collect)
-                predict_results.append(rdd_collect)
 
-                model = stkm.latestModel()
-                clusterCenters = model.centers
-                clusterWeights = model.clusterWeights
-                print("cluster center({})  cluster weight({})".format(clusterCenters, clusterWeights))
+                save_model()
 
-                modelParams = {'clusterCenters': clusterCenters, 'clusterWeights': clusterWeights}
-                with open("./model.pk", 'wb') as f:
-                    pickle.dump(modelParams, f, pickle.HIGHEST_PROTOCOL)
-
-                with open('./model.pk', 'rb') as f:
-                    # The protocol version used is detected automatically, so we do not
-                    # have to specify it.
-                    data = pickle.load(f)
-                    print("--------- restore pickle --------")
-                    print(data)
-
-                    typed_model = StreamingKMeansModel(clusterCenters=data['clusterCenters'],
-                                                       clusterWeights=data['clusterWeights'])
-
-                    test_data = [5.1, 3.5, 1.4, 0.2]
-                    test_result = typed_model.predict(test_data)
-                    print("test.data({}) has test.result({})".format(test_data, test_result))
+                test_model()
 
         predict_stream.foreachRDD(collect)
-
 
 
 def main():
@@ -219,7 +135,7 @@ def main():
     # 3.topics该消费者所消费的topics
     # 4.numThreads开启消费topic线程的个数
     if (len(sys.argv) < 5):
-        print("Usage: KafkaWordCount <zkQuorum> <group> <topics> <numThreads>")
+        print("Usage: APP <zkQuorum> <group> <topics> <numThreads>")
         exit(1)
     zkQuorum = sys.argv[1]
     group = sys.argv[2]
