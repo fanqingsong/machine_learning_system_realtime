@@ -7,6 +7,8 @@ from pyspark import SparkConf, SparkContext
 import json
 import sys
 
+import pickle
+
 
 import time, os
 from celery import Celery, Task
@@ -42,9 +44,32 @@ def train(ds):
     def collect(rdd):
         rdd_collect = rdd.collect()
         if rdd_collect:
-            print("predict_stream foreach")
+            print("----- predict_stream foreach ------")
             print(rdd_collect)
             predict_results.append(rdd_collect)
+
+            model = stkm.latestModel()
+            clusterCenters = model.centers
+            clusterWeights = model.clusterWeights
+            print("cluster center({})  cluster weight({})".format(clusterCenters, clusterWeights))
+
+            modelParams = {'clusterCenters':clusterCenters, 'clusterWeights':clusterWeights}
+            with open("./model.pk", 'wb') as f:
+                pickle.dump(modelParams, f, pickle.HIGHEST_PROTOCOL)
+
+            with open('./model.pk', 'rb') as f:
+                # The protocol version used is detected automatically, so we do not
+                # have to specify it.
+                data = pickle.load(f)
+                print("--------- restore pickle --------")
+                print(data)
+
+                typed_model = StreamingKMeansModel(clusterCenters=data['clusterCenters'],
+                                                   clusterWeights=data['clusterWeights'])
+
+                test_data = [0.5]
+                test_result = typed_model.predict(test_data)
+                print("test.data({}) has test.result({})".format(test_data, test_result))
 
     predict_stream.foreachRDD(collect)
 

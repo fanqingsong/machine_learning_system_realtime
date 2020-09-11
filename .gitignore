@@ -7,6 +7,9 @@ node_modules
 
 /ml/_checkpoint
 
+/_checkpoint/
+/receivedBlockMetadata/
+
 backend/kmeans_model/
 
 *.bk
