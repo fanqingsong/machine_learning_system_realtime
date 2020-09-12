@@ -40,7 +40,7 @@ INSTALLED_APPS = [
     'iris',
     'rest_framework',
     'knox',
-    'accounts',
+    'accounts'
 ]
 
 REST_FRAMEWORK = {

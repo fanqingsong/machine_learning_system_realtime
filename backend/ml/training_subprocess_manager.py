@@ -1,39 +1,67 @@
 # task.py
 
 import time
-from celery import Celery, Task
+from celery import shared_task
 import asyncio
 import subprocess, pprint
-
-# 实例化一个Celery
-broker = 'redis://localhost:6379/1'
-backend = 'redis://localhost:6379/2'
-
-# 参数1 自动生成任务名的前缀
-# 参数2 broker 是我们的redis的消息中间件
-# 参数3 backend 用来存储我们的任务结果的
-app = Celery('celery_subprocess', broker=broker, backend=backend)
 
 
 process = None
 
-# 加入装饰器变成异步的函数
-@app.task()
-def start_subprocess():
-    print('Enter start function ...')
+
+def _print_subprocess():
+    print("enter _print_subprocess function")
+
+    global process
+    p = process
+    if not p:
+        print("process is not set")
+        return
+
+    while p.poll() is None:
+        line = p.stdout.readline()
+        line = line.strip()
+        if line:
+            print('Subprogram output: [{}]'.format(line))
+
+    if p.returncode == 0:
+        print('Subprogram success')
+    else:
+        print(p.returncode)
+        print(p.pid)
+        print('Subprogram failed')
+
+        while True:
+            line = p.stderr.readline()
+            line = line.strip()
+            if line:
+                print('Subprogram output: [{}]'.format(line))
+
+
+def _stop_subprocess():
+    print('Enter _stop_subprocess function ...')
     global process
 
-    cmd = ["python", "kmeans_demo_streaming.py"]
+    if process:
+        process.stdout.close()
+        process.stderr.close()
+        process.kill()
+        process.wait()
+        process = None
+        print("old process killed")
+
+
+def _start_subprocess(k):
+    print('Enter _start_subprocess function ...')
+    global process
+
+    _stop_subprocess()
+
+    cmd = ["python", "ml/training_subprocess.py", "CN-00015440.ericsson.se:2181", "1", "oneIrisData", "1", str(k)]
     process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    print("process is created OK")
     pprint.pprint(process)
 
-    return 0
-
-@app.task()
-def print_subprocess():
-    print("enter print function")
-
-    global process
     p = process
     while p.poll() is None:
         line = p.stdout.readline()
@@ -55,17 +83,33 @@ def print_subprocess():
                 print('Subprogram output: [{}]'.format(line))
 
 
-@app.task()
-def stop_subprocess():
-    print('Enter call function ...')
-    global process
+    return process.id
 
-    if process:
-        process.stdout.close()
-        process.stderr.close()
-        process.kill()
-        process.wait()
-        print("old process killed")
+
+
+@shared_task
+def start_subprocess(k):
+    print('Enter start_subprocess function ...')
+
+    _stop_subprocess()
+
+    pid = _start_subprocess(k)
+
+    _print_subprocess()
+
+    return pid
+
+@shared_task
+def print_subprocess():
+    print("enter print_subprocess function")
+
+    _print_subprocess()
+
+@shared_task
+def stop_subprocess():
+    print('Enter stop_subprocess function ...')
+
+    _stop_subprocess()
 
 if __name__ == '__main__':
     # 这里生产的任务不可用，导入的模块不能包含task任务。会报错
@@ -81,7 +125,7 @@ if __name__ == '__main__':
     # time.sleep(2)
 
     print("before start subprocess")
-    r = start_subprocess.delay()
+    r = start_subprocess.delay(k)
     print("after start subprocess")
 
     # time.sleep(1)

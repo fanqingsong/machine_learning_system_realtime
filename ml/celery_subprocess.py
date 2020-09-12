@@ -23,7 +23,7 @@ def start_subprocess():
     print('Enter start function ...')
     global process
 
-    cmd = ["python", "kmeans_demo_streaming.py"]
+    cmd = ["python", "training_subprocess.py", "CN-00015440.ericsson.se:2181", "1", "oneIrisData", "1", "3"]
     process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     pprint.pprint(process)
 

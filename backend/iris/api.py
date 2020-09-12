@@ -4,8 +4,9 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from .serializers import IrisSerializer
-from .mltask import train, predict
-import json
+from ml.training_subprocess_manager import start_subprocess, stop_subprocess, print_subprocess
+from ml.training_data_sender import send_iris_data
+import json, time
 import numpy
 from celery import result
 
@@ -88,13 +89,23 @@ class IrisTrain(APIView):
         print("------- train data ----------")
         print(irisDataTrain)
 
-        # start train process
-        train_promise = train.delay(n_clusters, irisDataTrain)
-        train_task_id = train_promise.task_id
-        print("----------", 'train_task_id = ', train_task_id)
+        print("---- now start training subprocess -------")
+        start_subprocess.delay(n_clusters)
 
-        resp = {'train_task_id': train_task_id}
+        time.sleep(5)
 
+        # sending train data
+        print("-------- sending train data -------")
+        send_iris_data.delay(irisDataTrain)
+
+
+        # train_promise = train.delay(n_clusters, irisDataTrain)
+        # train_task_id = train_promise.task_id
+        # print("----------", 'train_task_id = ', train_task_id)
+        #
+        # resp = {'train_task_id': train_task_id}
+
+        resp = {'status': 'OK'}
         respData = json.dumps(resp)
 
         return Response(respData, status=status.HTTP_201_CREATED)
