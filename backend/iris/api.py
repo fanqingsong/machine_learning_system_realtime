@@ -6,6 +6,7 @@ from rest_framework import status
 from .serializers import IrisSerializer
 from ml.training_subprocess_manager import start_subprocess, stop_subprocess, print_subprocess
 from ml.training_data_sender import send_iris_data
+from ml.predicting_functor import predict_one
 import json, time
 import numpy
 from celery import result
@@ -111,6 +112,7 @@ class IrisTrain(APIView):
         return Response(respData, status=status.HTTP_201_CREATED)
 
 
+
 class IrisPredict(APIView):
     """
     predict iris cluster
@@ -128,7 +130,7 @@ class IrisPredict(APIView):
 
         one_feature = [sepal_len, sepal_width, petal_len, petal_width]
 
-        predict_promise = predict.delay(one_feature)
+        predict_promise = predict_one.delay(one_feature)
         prediction = predict_promise.get()
         print(one_feature, ", cluster=", prediction)
 
