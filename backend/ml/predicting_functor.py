@@ -12,7 +12,7 @@ class MLPredictor:
         self._model_path = './model.pk'
         self._model = None
 
-        self._load_model()
+        #self._load_model()
 
     def _load_model(self):
         if not os.path.exists(self._model_path):

@@ -2,7 +2,10 @@ import React, { Component, Fragment } from "react";
 import { connect } from "react-redux";
 import PropTypes from "prop-types";
 import { getIris } from "../../actions/iris";
+import axios from 'axios'
+
 var async = require("async");
+
 
 export class Iris extends Component {
   static propTypes = {
@@ -12,6 +15,8 @@ export class Iris extends Component {
 
   constructor(props) {
     super(props);
+
+    this.triggerOnlineTrain = this.triggerOnlineTrain.bind(this);
 
     this.state = {
       allIrisData: [],
@@ -26,9 +31,7 @@ export class Iris extends Component {
 
     this.setState({allIrisData: allIrisData})
 
-    setTimeout(()=>{
-      this.triggerOnlineTrain()
-    }, 1000)
+    this.props.setHook(this.triggerOnlineTrain)
   };
 
   triggerOnlineTrain() {
@@ -38,15 +41,27 @@ export class Iris extends Component {
       let oneTrainingIris = oneIris;
       console.log("current training iris =", oneTrainingIris)
 
-      setTimeout(() => {
-        oneTrainingIris.trained = true;
-        this.setState({oneTrainingIris: oneTrainingIris});
+      this.setState({oneTrainingIris: oneTrainingIris});
 
-        // update view because of changed trained attr
-        this.setState({allIrisData: allIrisData});
+      let {sepal_len, sepal_width, petal_len, petal_width} = oneTrainingIris;
+      let postData = {
+        sepal_len,
+        sepal_width,
+        petal_len,
+        petal_width
+      }
+  
+      axios.post("/api/feed", postData).then((resp)=>{
+        console.log("data=", resp.data);
+          setTimeout(() => {
+            oneTrainingIris.trained = true;
 
-        callback(null, null)
-      }, 1000);
+            // update view because of changed trained attr
+            this.setState({allIrisData: allIrisData});
+
+            callback(null, null)
+          }, 4000);
+      })
     }.bind(this), function(err, results) {
       // results is now an array of stats for each file
     });

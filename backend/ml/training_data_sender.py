@@ -13,7 +13,7 @@ class Sender:
             print("batch: ({})".format(batch))
             print("sending msg({})".format(json.dumps(batch).encode()))
             self._producer.send('oneIrisData', json.dumps(batch).encode())
-            time.sleep(1)
+            # time.sleep(1)
 
 @shared_task
 def send_iris_data(batches):

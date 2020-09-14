@@ -21,7 +21,7 @@ export class IrisExplore extends Component {
     this.state = {
       cluster_number: 3,
       percentile: 0
-    }
+    };
   }
 
   componentDidMount() {
@@ -68,15 +68,15 @@ export class IrisExplore extends Component {
     axios.post("/api/train", {cluster_number: cluster_number}).then((resp)=>{
       console.log("data=", resp.data);
 
-      let respData = JSON.parse(resp.data);
-
-      let train_task_id = respData["train_task_id"]
-
       let percentile = this.state.percentile;
       percentile += 10;
       this.setState({percentile: percentile})
 
-      this.queryTrainStatus(train_task_id)
+      // this.queryTrainStatus(train_task_id)
+
+      setTimeout(()=>{
+        this.triggerOnlineTrain()
+      }, 1000)  
     })
   }
 
@@ -116,7 +116,7 @@ export class IrisExplore extends Component {
           this.state.percentile === 100 ? 
           <TrainedBoard clusterNumber={cluster_number}></TrainedBoard>
           : 
-          <TrainingBoard></TrainingBoard>
+          <TrainingBoard setHook={hook => this.triggerOnlineTrain = hook} ></TrainingBoard>
         }
       </Fragment>
     );

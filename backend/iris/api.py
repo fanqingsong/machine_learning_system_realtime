@@ -10,6 +10,8 @@ from ml.predicting_functor import predict_one
 import json, time
 import numpy
 from celery import result
+from pprint import pprint
+
 
 
 # Iris Viewset
@@ -32,50 +34,12 @@ class MyEncoder(json.JSONEncoder):
         else:
             return super(MyEncoder, self).default(obj)
 
+
+
 class IrisTrain(APIView):
     """
     train iris cluster model
     """
-    def get(self, request, format=None):
-        print("--------------- IrisTrain get --------")
-
-        print(request)
-        print(request.GET)
-
-        train_task_id = request.GET.get("train_task_id")
-        print("train_task_id=%s" % train_task_id)
-
-        train_promise = result.AsyncResult(train_task_id)
-        if train_promise.ready():
-            # wait for train over
-            train_fit_data = train_promise.get()
-            print("------------- train over!! ------------")
-            print(train_fit_data)
-
-            # transfer data to client
-            train_result = [
-                {"sepal_len": one_fit_data['features'][0],
-                 "sepal_width": one_fit_data['features'][1],
-                 "petal_len": one_fit_data['features'][2],
-                 "petal_width": one_fit_data['features'][3],
-                 "cluster": one_fit_data['prediction']}
-                for one_fit_data in train_fit_data
-            ]
-
-            print(train_result[0])
-            print(len(train_result))
-
-            train_task_status = {'status': train_promise.state, 'result': train_result}
-        else:
-            train_task_status = {'status': train_promise.state, 'result': []}
-
-        print(train_task_status)
-
-        respData = json.dumps(train_task_status)
-
-        return Response(respData)
-
-
     def post(self, request, format=None):
         print("--------------- IrisTrain post --------")
 
@@ -85,32 +49,38 @@ class IrisTrain(APIView):
         n_clusters = int(n_clusters)
         print("n_cluster=%d" % n_clusters)
 
-        irisObjects = Iris.objects.all()
-        irisDataTrain = [[oneIris.sepal_len, oneIris.sepal_width, oneIris.petal_len, oneIris.petal_width] for oneIris in irisObjects]
-        print("------- train data ----------")
-        print(irisDataTrain)
-
         print("---- now start training subprocess -------")
         start_subprocess.delay(n_clusters)
-
-        time.sleep(5)
-
-        # sending train data
-        print("-------- sending train data -------")
-        send_iris_data.delay(irisDataTrain)
-
-
-        # train_promise = train.delay(n_clusters, irisDataTrain)
-        # train_task_id = train_promise.task_id
-        # print("----------", 'train_task_id = ', train_task_id)
-        #
-        # resp = {'train_task_id': train_task_id}
 
         resp = {'status': 'OK'}
         respData = json.dumps(resp)
 
         return Response(respData, status=status.HTTP_201_CREATED)
 
+
+class IrisDataFeeder(APIView):
+    """
+    send iris data to training process one by one
+    """
+    def post(self, request, format=None):
+        print("--------------- IrisDataFeeder post --------")
+        print(request.data)
+
+        sepal_len = request.data["sepal_len"]
+        sepal_width = request.data["sepal_width"]
+        petal_len = request.data["petal_len"]
+        petal_width = request.data["petal_width"]
+
+        one_feature = [sepal_len, sepal_width, petal_len, petal_width]
+
+        # sending train data
+        print("-------- sending one iris data for training -------")
+        send_iris_data.delay([one_feature])
+
+        resp = {'status': 'OK'}
+        respData = json.dumps(resp)
+
+        return Response(respData, status=status.HTTP_201_CREATED)
 
 
 class IrisPredict(APIView):
