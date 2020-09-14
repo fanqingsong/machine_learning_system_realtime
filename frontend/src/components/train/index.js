@@ -76,7 +76,7 @@ export class IrisExplore extends Component {
 
       setTimeout(()=>{
         this.triggerOnlineTrain()
-      }, 1000)  
+      }, 10000)  
     })
   }
 
