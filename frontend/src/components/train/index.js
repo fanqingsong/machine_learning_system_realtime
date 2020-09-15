@@ -20,63 +20,72 @@ export class IrisExplore extends Component {
 
     this.state = {
       cluster_number: 3,
-      percentile: 0
+      percentile: 0,
+      status: "idle",
+      stop_feeding: false
     };
+
+    this.updateStatus = this.updateStatus.bind(this);
+  }
+
+  updateStatus(status){
+    this.setState({status: status})
   }
 
   componentDidMount() {
   };
 
-  queryTrainStatus(train_task_id){
-     console.log("query train model..., with train task id=", train_task_id)
+  updateProgressStatus(){
+     console.log("query train model...")
 
-     axios.get(`/api/train?train_task_id=${train_task_id}`).then((resp)=>{
-        console.log("data=", resp.data);
+      let percentile = this.state.percentile;
+      if( percentile <= 80 )
+      {
+        percentile += 10;
+        this.setState({percentile: percentile});
+      }
 
-        let percentile = this.state.percentile;
-        if( percentile <= 80 )
-        {
-          percentile += 10;
-          this.setState({percentile: percentile});
-        }
+      let status = this.state.status
+      if ("done" === status) {
+          // let irisData = respData['result'];
+          // this.props.setClusteredIris(irisData);
 
-        let respData = JSON.parse(resp.data);
-        let status = respData['status']
-        if ("SUCCESS" === status) {
-            let irisData = respData['result'];
-            this.props.setClusteredIris(irisData);
-
-            this.setState({percentile: 100});
-        } else if ("FAILURE" === status) {
-            console.log("train process failed!!");
-        } else {
-            setTimeout(() => {
-                this.queryTrainStatus(train_task_id)
-            }, 1000)
-        }
-     })
+          this.setState({percentile: 100});
+      } else {
+          setTimeout(() => {
+              this.updateProgressStatus()
+          }, 5000)
+      }
   }
 
   startTrain(){
     console.log("======start train =======")
-    this.setState({percentile: 0});
+    this.setState({percentile: 0, stop_feeding: false});
 
     this.props.setClusteredIris([]);
 
     let cluster_number = this.state.cluster_number;
 
-    axios.post("/api/train", {cluster_number: cluster_number}).then((resp)=>{
+    axios.post("/api/train/start", {cluster_number: cluster_number}).then((resp)=>{
       console.log("data=", resp.data);
 
       let percentile = this.state.percentile;
       percentile += 10;
       this.setState({percentile: percentile})
 
-      // this.queryTrainStatus(train_task_id)
+      this.updateProgressStatus()
 
       setTimeout(()=>{
         this.triggerOnlineTrain()
       }, 10000)  
+    })
+  }
+
+  stopTrain() {
+    axios.post("/api/train/stop").then((resp)=>{
+      console.log("stop train process")
+      console.log("data=", resp.data);
+      this.setState({stop_feeding: true})
     })
   }
 
@@ -109,6 +118,8 @@ export class IrisExplore extends Component {
           <br/>
           <div className="form-group">
             <button type="submit" className="btn btn-primary" onClick={this.startTrain.bind(this)}>start train</button>
+            &nbsp;&nbsp;
+            <button type="button" className="btn btn-primary" onClick={this.stopTrain.bind(this)}>stop train</button>
           </div>
         </form>
 
@@ -116,7 +127,10 @@ export class IrisExplore extends Component {
           this.state.percentile === 100 ? 
           <TrainedBoard clusterNumber={cluster_number}></TrainedBoard>
           : 
-          <TrainingBoard setHook={hook => this.triggerOnlineTrain = hook} ></TrainingBoard>
+          <TrainingBoard 
+            setHook={hook => this.triggerOnlineTrain = hook} 
+            updateStatus={this.updateStatus}
+            stop_feeding={this.state.stop_feeding}></TrainingBoard>
         }
       </Fragment>
     );

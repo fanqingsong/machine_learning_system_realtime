@@ -10,7 +10,9 @@ var async = require("async");
 export class Iris extends Component {
   static propTypes = {
     irisDataFromDB: PropTypes.array.isRequired,
-    getIris: PropTypes.func.isRequired
+    getIris: PropTypes.func.isRequired,
+    updateStatus: PropTypes.func.isRequired,
+    stop_feeding: PropTypes.bool.isRequired
   };
 
   constructor(props) {
@@ -37,7 +39,15 @@ export class Iris extends Component {
   triggerOnlineTrain() {
     let allIrisData = this.state.allIrisData;
     console.log("all", allIrisData)
+
+    this.props.updateStatus("doing")
+
     async.mapSeries(allIrisData, function(oneIris, callback){
+      if (this.props.stop_feeding){
+        callback(null, null)
+        return
+      }
+
       let oneTrainingIris = oneIris;
       console.log("current training iris =", oneTrainingIris)
 
@@ -64,6 +74,7 @@ export class Iris extends Component {
       })
     }.bind(this), function(err, results) {
       // results is now an array of stats for each file
+      this.props.updateStatus("done")
     });
   };
 

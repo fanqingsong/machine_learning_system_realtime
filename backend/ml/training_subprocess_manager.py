@@ -62,26 +62,7 @@ def _start_subprocess(k):
     print("process is created OK")
     pprint.pprint(process)
 
-    p = process
-    while p.poll() is None:
-        line = p.stdout.readline()
-        line = line.strip()
-        if line:
-            print('Subprogram output: [{}]'.format(line))
-
-    if p.returncode == 0:
-        print('Subprogram success')
-    else:
-        print(p.returncode)
-        print(p.pid)
-        print('Subprogram failed')
-
-        while True:
-            line = p.stderr.readline()
-            line = line.strip()
-            if line:
-                print('Subprogram output: [{}]'.format(line))
-
+    _print_subprocess()
 
     return process.id
 

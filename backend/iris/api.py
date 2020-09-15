@@ -36,12 +36,12 @@ class MyEncoder(json.JSONEncoder):
 
 
 
-class IrisTrain(APIView):
+class IrisTrainStarter(APIView):
     """
     train iris cluster model
     """
     def post(self, request, format=None):
-        print("--------------- IrisTrain post --------")
+        print("--------------- IrisTrain start post --------")
 
         print(request.data)
 
@@ -56,6 +56,26 @@ class IrisTrain(APIView):
         respData = json.dumps(resp)
 
         return Response(respData, status=status.HTTP_201_CREATED)
+
+
+class IrisTrainStopper(APIView):
+    """
+    stop train iris cluster model
+    """
+    def post(self, request, format=None):
+        print("--------------- IrisTrain stop post --------")
+
+        print(request.data)
+
+        print("---- now stop training subprocess -------")
+        stop_subprocess.delay()
+
+        resp = {'status': 'OK'}
+        respData = json.dumps(resp)
+
+        return Response(respData, status=status.HTTP_201_CREATED)
+
+
 
 
 class IrisDataFeeder(APIView):
@@ -83,12 +103,12 @@ class IrisDataFeeder(APIView):
         return Response(respData, status=status.HTTP_201_CREATED)
 
 
-class IrisPredict(APIView):
+class IrisPredictor(APIView):
     """
     predict iris cluster
     """
     def post(self, request, format=None):
-        print("--------------- IrisPredict post --------")
+        print("--------------- IrisPredictor post --------")
         print(request.data)
 
         sepal_len = request.data["sepal_len"]
