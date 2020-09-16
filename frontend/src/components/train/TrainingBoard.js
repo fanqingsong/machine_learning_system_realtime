@@ -74,8 +74,9 @@ export class Iris extends Component {
       })
     }.bind(this), function(err, results) {
       // results is now an array of stats for each file
+      console.log("feeding data over!")
       this.props.updateStatus("done")
-    });
+    }.bind(this));
   };
 
   render() {

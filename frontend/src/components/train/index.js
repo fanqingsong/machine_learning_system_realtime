@@ -26,11 +26,13 @@ export class IrisExplore extends Component {
     };
 
     this.updateStatus = this.updateStatus.bind(this);
-  }
+  };
 
   updateStatus(status){
+    console.log("change status to ", status)
+
     this.setState({status: status})
-  }
+  };
 
   componentDidMount() {
   };
@@ -46,6 +48,7 @@ export class IrisExplore extends Component {
       }
 
       let status = this.state.status
+      console.log("now get status is =", status);
       if ("done" === status) {
           // let irisData = respData['result'];
           // this.props.setClusteredIris(irisData);
@@ -60,7 +63,7 @@ export class IrisExplore extends Component {
 
   startTrain(){
     console.log("======start train =======")
-    this.setState({percentile: 0, stop_feeding: false});
+    this.setState({percentile: 0, stop_feeding: false, status: 'doing'});
 
     this.props.setClusteredIris([]);
 
