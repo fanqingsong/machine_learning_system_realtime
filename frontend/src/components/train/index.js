@@ -37,6 +37,13 @@ export class IrisExplore extends Component {
   componentDidMount() {
   };
 
+  getAllPredictedData() {
+    axios.get("/api/predict").then((respData) => {
+      let irisData = respData['result'];
+      this.props.setClusteredIris(irisData);
+    })
+  }
+
   updateProgressStatus(){
      console.log("query train model...")
 
@@ -50,10 +57,8 @@ export class IrisExplore extends Component {
       let status = this.state.status
       console.log("now get status is =", status);
       if ("done" === status) {
-          // let irisData = respData['result'];
-          // this.props.setClusteredIris(irisData);
-
           this.setState({percentile: 100});
+          this.getAllPredictedData();
       } else {
           setTimeout(() => {
               this.updateProgressStatus()

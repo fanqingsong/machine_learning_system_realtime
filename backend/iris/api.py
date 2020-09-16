@@ -6,7 +6,7 @@ from rest_framework import status
 from .serializers import IrisSerializer
 from ml.training_subprocess_manager import start_subprocess, stop_subprocess, print_subprocess
 from ml.training_data_sender import send_iris_data
-from ml.predicting_functor import predict_one
+from ml.predicting_functor import predict_one, predict_batch
 import json, time
 import numpy
 from celery import result
@@ -76,8 +76,6 @@ class IrisTrainStopper(APIView):
         return Response(respData, status=status.HTTP_201_CREATED)
 
 
-
-
 class IrisDataFeeder(APIView):
     """
     send iris data to training process one by one
@@ -107,8 +105,45 @@ class IrisPredictor(APIView):
     """
     predict iris cluster
     """
+    def get(self, request, format=None):
+        print("--------------- IrisPredictor get, predict all iris data --------")
+
+        print(request)
+        print(request.GET)
+
+        irisObjects = Iris.objects.all()
+        irisData = [[oneIris.sepal_len, oneIris.sepal_width, oneIris.petal_len, oneIris.petal_width] for oneIris in irisObjects]
+        print("------- all iris data ----------")
+        print(irisData)
+
+        predict_promise = predict_batch.delay(irisData)
+        irisCluster = predict_promise.get()
+
+        irisPredictData = zip(irisData, irisCluster)
+
+        # transfer data to client
+        predict_result = [
+            {"sepal_len": oneData[0][0],
+             "sepal_width": oneData[0][1],
+             "petal_len": oneData[0][2],
+             "petal_width": oneData[0][3],
+             "cluster": oneData[1]}
+            for oneData in irisPredictData
+        ]
+
+        print(predict_result[0])
+        print(len(predict_result))
+
+        predict_resp = {'status': 'OK', 'result': predict_result}
+
+        print(predict_resp)
+
+        respData = json.dumps(predict_resp)
+
+        return Response(respData)
+
     def post(self, request, format=None):
-        print("--------------- IrisPredictor post --------")
+        print("--------------- IrisPredictor post, predict one iris data --------")
         print(request.data)
 
         sepal_len = request.data["sepal_len"]
