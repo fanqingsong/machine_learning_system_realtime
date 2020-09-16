@@ -38,7 +38,8 @@ export class IrisExplore extends Component {
   };
 
   getAllPredictedData() {
-    axios.get("/api/predict").then((respData) => {
+    axios.get("/api/predict").then((resp) => {
+      let respData = JSON.parse(resp.data);
       let irisData = respData['result'];
       this.props.setClusteredIris(irisData);
     })
