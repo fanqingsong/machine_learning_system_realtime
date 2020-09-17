@@ -27,13 +27,35 @@ export class Iris extends Component {
     }
   };
 
+  componentWillReceiveProps(newProps) {
+    console.log('Component WILL RECEIVE PROPS!')
+    console.log(newProps)
+
+    console.log(this.state)
+    console.log(this.props)
+    let irisDataFromDB = newProps.irisDataFromDB;
+    console.log(irisDataFromDB)
+
+    this.setState({allIrisData: irisDataFromDB})  
+
+    console.log(this.state)
+  }
+
+  componentWillUpdate(nextProps, nextState) {
+    console.log('Component WILL UPDATE!');
+    console.log(nextProps)
+    console.log(nextState)
+
+    console.log(this.props)
+    // old props
+    let irisDataFromDB = this.props.irisDataFromDB;
+    console.log(irisDataFromDB)
+  }
+
   componentDidMount() {
-    this.props.getIris();
-    let allIrisData = this.props.irisDataFromDB;
+      this.props.setHook(this.triggerOnlineTrain)
 
-    this.setState({allIrisData: allIrisData})
-
-    this.props.setHook(this.triggerOnlineTrain)
+      this.props.getIris()
   };
 
   triggerOnlineTrain() {

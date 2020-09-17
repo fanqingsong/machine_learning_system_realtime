@@ -11,8 +11,7 @@ import TrainedBoard from "./TrainedBoard";
 
 export class IrisExplore extends Component {
   static propTypes = {
-    iris: PropTypes.array.isRequired,
-    getIris: PropTypes.func.isRequired,
+    iris: PropTypes.array.isRequired
   };
 
   constructor(props) {
