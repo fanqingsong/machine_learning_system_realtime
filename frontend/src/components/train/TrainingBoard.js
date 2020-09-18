@@ -52,6 +52,13 @@ export class Iris extends Component {
     console.log(irisDataFromDB)
   }
 
+  componentWillMount() {
+    console.log('Component WILL MOUNT!');
+    // this.props.setHook(this.triggerOnlineTrain)
+
+    // this.props.getIris()
+  };
+
   componentDidMount() {
       this.props.setHook(this.triggerOnlineTrain)
 

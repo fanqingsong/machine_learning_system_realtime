@@ -6,7 +6,7 @@ import { SET_IRIS_DATA, DELETE_ONE_IRIS, UPDATE_ONE_IRIS, ADD_ONE_IRIS, SELECT_O
 
 // GET ALL IRIS DATA
 export const getIris = () => (dispatch, getState) => {
-  axios
+  return axios
     .get("/api/iris/", tokenConfig(getState))
     .then(res => {
       dispatch({

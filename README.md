@@ -4,7 +4,7 @@
 
 > This project is a full stack Django/React/Redux/Celery/Spark app that uses token based authentication with Knox.
  
-> Then I add Machine Learning features for demostrate the full workflow of the data mining, including the four stage corresponding to four pages:
+> Then I add Machine Learning features for demostrating the full workflow of the data mining, including the four stage corresponding to four pages:
 > - data management
 > - data explore
 > - model train
@@ -34,7 +34,7 @@ so you can reference, but the quality is not assured.
 
 * model train
 > input cluster number
-> train a cluster model using spark.ml library
+> train a cluster model using spark.ml library streamingly
 > inspect cluster result through sepal and petal scatter
 
 * prediction
@@ -47,15 +47,19 @@ so you can reference, but the quality is not assured.
 
 Generally, train process is time consumming, and predict process is quick.
 So set train flow as async mode, and predict flow as sync mode.
+BTW, train process is implemented by stream, with streaming kmeans library:
+https://spark.apache.org/docs/latest/api/python/pyspark.mllib.html?highlight=streaminglinearregressionwithsgd#pyspark.mllib.clustering.StreamingKMeans
+
 
 ### train flow
 
 * user start model train from browser
 * django recieve the "start train" message
-* django schedule spark.ml celery process to train model and return to user immediately.
-* browser query train status to django
-* django query train status from spark.ml celery process.
-* django feedback the train over status to browser
+* django schedule process manager celery process to launch a train process based on kafka.
+* browser transfer iris data one by one to django
+* django call sender process to send one iris data to train process by kafka
+* train process receive one iris data, training model with streaming kmeans library
+* after feeding all iris data, display the train result for all iris data
 
 ### predict flow
 
@@ -65,25 +69,39 @@ So set train flow as async mode, and predict flow as sync mode.
 * django feedback the prediction result to browser
 
 ```
-+---------+            +-------------+            +------------+
-|         | start train|             |            |            |
-|         +------------>             |   start    |            |
-|         |            |             +---train---->            |
-|         |  query train             |            |            |
-|         +--status---->             |            |            |
-|         |            |             +----query -->            |
-|         <---train ---+             |    train   |            |
-|         |   over     |             |    status  |            |
-|  browser|            |   django    |            |  spark.ml  |
-|         |            |             |            |  on celery |
-|         |  predict   |             |            |            |
-|         +------------>             |    predict |            |
-|         |            |             +----------->+            |
-|         <--predict---+             |            |            |
-|         |  result    |             |            |            |
-|         |            |             |            |            |
-|         |            |             |            |            |
-+---------+            +-------------+            +------------+
++----------------+              +-------------+          +------------+       +---------------+
+|                |              |             |          |            |       |               |
+|     Browser    |              |   django    |          |   Celery   |       |   train proc  |
+|                |              |             |          |            |       |   ess         |
++-------+--------+              +------+------+          +------+-----+       +-------+-------+
+        |                              |                        |                     |
+        |       request train          |                        |                     |
+        +----------------------------->+                launch a train process with celery
+        |                              +------------------------+-------------------->|
+        |                              |                        |                     |
+        |     send 1st iris data       |                        |                     |
+        +----------------------------->+           send 1st iris data with celery     |
+        |                              +------------------------+-------------------->+
+        |                              |                        |                     |
+        |                              |                        |                     |
+        |                              |                        |                     |
+        |                              |                        |                     |
+        |     send last iris data      |                        |                     |
+        +----------------------------->+           send last iris data with celery    |
+        |                              +------------------------+-------------------->+
+        |                              |                        |                     |
+        |                              |                        |                     |
+        |                              |                        |                     |
+        |                              |                        |                     |
+        |                              |                        |                     |
+        |                              |                        |                     |
+        |     send one iris features   |                        |                     |
+        +----------------------------->+     predict cluster in celery                |
+        |                              +------------------------>                     |
+        |                              |                        |                     |
+        |                              |                        |                     |
+        |                              |                        |                     |
+        +                              +                        +                     +
 
 ```
 
@@ -102,7 +120,9 @@ category | name | comment
  backend | django-rest-knox | authentication library
  backend | djangorestframework | restful framework
  backend | spark.ml | machine learning tool
-
+ backend | redis-server | broker for celery
+ backend | celery | worker for django
+ backend | kafka | broker for spark.ml streaming kmeans train
 ---
 
 ## Install
@@ -131,12 +151,24 @@ category | name | comment
 ./bin/build_ui.sh
 ```
 
+### Run (On One Terminal)
+
+```bash
+./bin/start.sh
+```
+
 ### Run (On Different Terminals)
 
 - start redis server
 
 ```bash
 ./bin/start_redis.sh
+```
+
+- start kafka
+
+```bash
+./bin/start_kafka.sh
 ```
 
 - start celery worker for django
@@ -149,12 +181,6 @@ category | name | comment
 
 ```bash
 ./bin/start_django.sh
-```
-
-### Run (On One Terminal)
-
-```bash
-./bin/start.sh
 ```
 
 ---
@@ -179,27 +205,3 @@ Note: account: admin/admin
 
 ---
 
-## Memo:
-
-```bash
-
-(1) use this command to make new requirements.txt, if new package is installed.
-pip freeze > requirements.txt
-
-(2) sqlite3 error solution
-# sqlite install
-wget https://www.sqlite.org/2017/sqlite-autoconf-3170000.tar.gz --no-check-certificate
-tar xf  sqlite-autoconf-3170000.tar.gz
-cd sqlite-autoconf-3170000/
-./configure --prefix=/usr/local/sqlite3 --disable-static --enable-fts5 --enable-json1 CFLAGS="-g -O2 -DSQLITE_ENABLE_FTS3=1 -DSQLITE_ENABLE_FTS4=1 -DSQLITE_ENABLE_RTREE=1"
-make && make install
-
-python install
-cd Python-3.5.3
-LD_RUN_PATH=/usr/local/sqlite3/lib ./configure LDFLAGS="-L/usr/local/sqlite3/lib" CPPFLAGS="-I /usr/local/sqlite3/include"
-LD_RUN_PATH=/usr/local/sqlite3/lib make
-LD_RUN_PATH=/usr/local/sqlite3/lib sudo make install
-
-from
-https://www.cnblogs.com/i1991/p/9497259.html
-```
