@@ -137,6 +137,7 @@ export class IrisExplore extends Component {
           : 
           <TrainingBoard 
             setHook={hook => this.triggerOnlineTrain = hook} 
+            clusterNumber={cluster_number}
             updateStatus={this.updateStatus}
             stop_feeding={this.state.stop_feeding}></TrainingBoard>
         }
