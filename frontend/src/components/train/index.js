@@ -25,12 +25,18 @@ export class IrisExplore extends Component {
     };
 
     this.updateStatus = this.updateStatus.bind(this);
+    this.updateProgressStatus = this.updateProgressStatus.bind(this);
   };
 
   updateStatus(status){
     console.log("change status to ", status)
 
     this.setState({status: status})
+
+    if ("done" === status) {
+      this.getAllPredictedData();
+      this.updateProgressStatus()
+    }
   };
 
   componentDidMount() {
@@ -44,13 +50,16 @@ export class IrisExplore extends Component {
     })
   }
 
-  updateProgressStatus(){
-     console.log("query train model...")
+  updateProgressStatus(steps){
+     console.log("updateProgressStatus...")
 
       let percentile = this.state.percentile;
-      if( percentile <= 80 )
+      console.log("now percentile =", percentile);
+
+      let newPercentile = percentile + steps
+      console.log("new percentile =", percentile);
+      if( newPercentile <= 99 )
       {
-        percentile += 10;
         this.setState({percentile: percentile});
       }
 
@@ -58,11 +67,6 @@ export class IrisExplore extends Component {
       console.log("now get status is =", status);
       if ("done" === status) {
           this.setState({percentile: 100});
-          this.getAllPredictedData();
-      } else {
-          setTimeout(() => {
-              this.updateProgressStatus()
-          }, 5000)
       }
   }
 
@@ -77,11 +81,7 @@ export class IrisExplore extends Component {
     axios.post("/api/train/start", {cluster_number: cluster_number}).then((resp)=>{
       console.log("data=", resp.data);
 
-      let percentile = this.state.percentile;
-      percentile += 10;
-      this.setState({percentile: percentile})
-
-      this.updateProgressStatus()
+      this.updateProgressStatus(5)
 
       setTimeout(()=>{
         this.triggerOnlineTrain()
@@ -139,6 +139,7 @@ export class IrisExplore extends Component {
             setHook={hook => this.triggerOnlineTrain = hook} 
             clusterNumber={cluster_number}
             updateStatus={this.updateStatus}
+            updateProgressStatus={this.updateProgressStatus}
             stop_feeding={this.state.stop_feeding}></TrainingBoard>
         }
       </Fragment>
