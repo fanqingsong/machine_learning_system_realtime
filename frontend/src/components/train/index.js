@@ -51,16 +51,16 @@ export class IrisExplore extends Component {
   }
 
   updateProgressStatus(steps){
-     console.log("updateProgressStatus...")
+     console.log("updateProgressStatus with steps =", steps)
 
       let percentile = this.state.percentile;
       console.log("now percentile =", percentile);
 
       let newPercentile = percentile + steps
-      console.log("new percentile =", percentile);
+      console.log("new percentile =", newPercentile);
       if( newPercentile <= 99 )
       {
-        this.setState({percentile: percentile});
+        this.setState({percentile: newPercentile});
       }
 
       let status = this.state.status

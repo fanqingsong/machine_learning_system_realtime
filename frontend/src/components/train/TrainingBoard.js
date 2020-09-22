@@ -90,7 +90,6 @@ export class Iris extends Component {
     this.setState({clusteredIris:[]})
 
     let allCount = allIrisData.length;
-    let trainedIndex = 0;
     async.mapSeries(allIrisData, function(oneIris, callback){
       if (this.props.stop_feeding){
         callback(null, null)
@@ -115,8 +114,7 @@ export class Iris extends Component {
           setTimeout(() => {
             oneTrainingIris.trained = true;
 
-            trainedIndex++;
-            let steps = Math.floor(95*(trainedIndex/allCount))
+            let steps = Math.ceil(95/allCount)
             this.props.updateProgressStatus(steps)
 
             // update view because of changed trained attr
