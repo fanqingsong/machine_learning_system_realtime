@@ -158,10 +158,10 @@ export class Iris extends Component {
     
     return (
         <Fragment>
-        <h2>Iris Sepal Scatter cluster</h2>
+        <h2>Iris Sepal Scatter Trained</h2>
         <C3Chart data={sepalData} axis={sepalAxis} />
 
-        <h2>Iris Petal Scatter cluster</h2>
+        <h2>Iris Petal Scatter Trained</h2>
         <C3Chart data={petalData} axis={petalAxis} />
 
         <h2>Iris Cluster Result</h2>

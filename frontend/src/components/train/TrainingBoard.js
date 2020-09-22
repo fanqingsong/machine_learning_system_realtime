@@ -274,13 +274,13 @@ export class Iris extends Component {
 
     return (
       <Fragment>
-        <h2>Iris Sepal Scatter Clustering</h2>
+        <h2>Iris Sepal Scatter Training</h2>
         <C3Chart data={sepalData} axis={sepalAxis} />
 
-        <h2>Iris Petal Scatter Clustering</h2>
+        <h2>Iris Petal Scatter Training</h2>
         <C3Chart data={petalData} axis={petalAxis} />
 
-        <h2>Iris Data being learned</h2>
+        <h2>Iris Data being Learned(One by One)</h2>
         <table className="table table-striped">
           <thead>
             <tr>
@@ -307,7 +307,7 @@ export class Iris extends Component {
         </table>
 
         <hr></hr>
-        <h2>Iris Data to be learned one by one</h2>
+        <h2>Iris Data to Be Learned</h2>
         <table className="table table-striped">
           <thead>
             <tr>

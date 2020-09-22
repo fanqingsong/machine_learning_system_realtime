@@ -8,6 +8,10 @@ import { ProgressBar } from 'react-bootstrap';
 import TrainingBoard from "./TrainingBoard";
 import TrainedBoard from "./TrainedBoard";
 
+import Container from 'react-bootstrap/Container'
+import Row from 'react-bootstrap/Row'
+import Col from 'react-bootstrap/Col'
+
 
 export class IrisExplore extends Component {
   static propTypes = {
@@ -40,6 +44,7 @@ export class IrisExplore extends Component {
   };
 
   componentDidMount() {
+    this.getAllPredictedData();
   };
 
   getAllPredictedData() {
@@ -73,8 +78,6 @@ export class IrisExplore extends Component {
   startTrain(){
     console.log("======start train =======")
     this.setState({percentile: 0, stop_feeding: false, status: 'doing'});
-
-    this.props.setClusteredIris([]);
 
     let cluster_number = this.state.cluster_number;
 
@@ -131,17 +134,25 @@ export class IrisExplore extends Component {
           </div>
         </form>
 
-        {
-          this.state.percentile === 100 ? 
-          <TrainedBoard clusterNumber={cluster_number}></TrainedBoard>
-          : 
-          <TrainingBoard 
-            setHook={hook => this.triggerOnlineTrain = hook} 
-            clusterNumber={cluster_number}
-            updateStatus={this.updateStatus}
-            updateProgressStatus={this.updateProgressStatus}
-            stop_feeding={this.state.stop_feeding}></TrainingBoard>
-        }
+        <Container>
+          <Row>
+            <Col lg="6">
+              <Container>
+                <TrainingBoard 
+                  setHook={hook => this.triggerOnlineTrain = hook} 
+                  clusterNumber={cluster_number}
+                  updateStatus={this.updateStatus}
+                  updateProgressStatus={this.updateProgressStatus}
+                  stop_feeding={this.state.stop_feeding}></TrainingBoard>
+              </Container>
+            </Col>
+            <Col lg="6">
+              <Container>
+                <TrainedBoard clusterNumber={cluster_number}></TrainedBoard>
+              </Container>
+            </Col>
+          </Row>
+        </Container>
       </Fragment>
     );
   }
